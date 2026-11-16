@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#04120b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Planning">
+    <link id="pwa-manifest-link" rel="manifest" href="">
+    <link id="apple-touch-icon-link" rel="apple-touch-icon" href="">
+    <title>Planning // Daily Schedule & Focus</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Inter', 'sans-serif'],
+                            mono: ['JetBrains Mono', 'monospace'],
+                        },
+                        colors: {
+                            forest: {
+                                950: '#04120b',
+                                900: '#071c12',
+                                850: '#0b2619',
+                                800: '#0f3322',
+                                700: '#174730',
+                                600: '#216143',
+                            },
+                            limeglow: {
+                                300: '#bef264',
+                                400: '#a3e635',
+                                500: '#84cc16',
+                                600: '#65a30d',
+                            }
+                        }
+                    }
+                }
+            };
+        }
+    </script>
+    <style>
+        /* Fallback utility classes in case Tailwind CDN loads asynchronously */
+        .bg-forest-950 { background-color: #04120b; }
+        .bg-forest-900 { background-color: #071c12; }
+        .bg-forest-850 { background-color: #0b2619; }
+        .bg-forest-800 { background-color: #0f3322; }
+        .border-forest-700 { border-color: #174730; }
+        .border-forest-600 { border-color: #216143; }
+        .text-limeglow-300 { color: #bef264; }
+        .text-limeglow-400 { color: #a3e635; }
+        .bg-limeglow-400 { background-color: #a3e635; }
+        .text-forest-950 { color: #04120b; }
+
+        body {
+            background-color: #04120b;
+            color: #ecfdf5;
+            background-image: 
+                radial-gradient(at 15% 0%, rgba(163, 230, 53, 0.08) 0px, transparent 50%),
+                radial-gradient(at 85% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #04120b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #174730;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #216143;
+        }
+
+        /* Custom Checkbox Styling */
+        .task-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 7px;
+            border: 2px solid #216143;
+            background-color: #071c12;
+            cursor: pointer;
+            display: grid;
+            place-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+        .task-checkbox:hover {
+            border-color: #a3e635;
+        }
+        .task-checkbox:checked {
+            background-color: #a3e635;
+            border-color: #a3e635;
+            transform: scale(1.05);
+        }
+        .task-checkbox:checked::before {
+            content: "";
+            width: 12px;
+            height: 12px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2304120b' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        /* Time picker dark calendar icon fix */
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(82%) sepia(56%) saturate(566%) hue-rotate(34deg) brightness(98%) contrast(92%);
+            cursor: pointer;
+        }
+
+        .glass-panel {
+            background: rgba(11, 38, 25, 0.78);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(33, 97, 67, 0.55);
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased selection:bg-limeglow-400 selection:text-forest-950 pb-16">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Top Automated Routine Banner -->
+    <div class="bg-forest-900/90 border-b border-forest-700/60 px-4 py-2 text-xs font-mono backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+                <span class="flex items-center gap-1.5 text-limeglow-400 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-limeglow-400 animate-pulse"></span>
+                    ROUTINES ACTIVE
+                </span>
+                <span class="hidden md:inline text-forest-600">|</span>
+                <span class="text-emerald-200/80 hidden md:inline">08:00 AM Briefing & 09:00 PM Recap</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button id="notif-permission-btn" onclick="handleNotificationButton()" class="px-2.5 py-1 rounded-md bg-limeglow-400/15 hover:bg-limeglow-400/25 text-limeglow-300 border border-limeglow-400/40 transition-all flex items-center gap-1.5" title="Enable device push notifications">
+                    <i data-lucide="bell" class="w-3.5 h-3.5"></i>
+                    <span id="notif-btn-label">Enable Alerts</span>
+                </button>
+                <button onclick="openReportModal('morning')" class="px-2.5 py-1 rounded-md bg-forest-800 hover:bg-forest-700 text-limeglow-300 border border-forest-600/60 transition-all flex items-center gap-1.5">
+                    <i data-lucide="sunrise" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">8:00 AM Briefing</span>
+                    <span class="sm:hidden">8 AM</span>
+                </button>
+                <button onclick="openReportModal('evening')" class="px-2.5 py-1 rounded-md bg-forest-800 hover:bg-forest-700 text-emerald-200 border border-forest-600/60 transition-all flex items-center gap-1.5">
+                    <i data-lucide="moon" class="w-3.5 h-3.5 text-limeglow-400"></i>
+                    <span class="hidden sm:inline">9:00 PM Report</span>
+                    <span class="sm:hidden">9 PM</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 space-y-6">
+
+        <!-- 1. HEADER & PROGRESS CARD -->
+        <header class="glass-panel rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-limeglow-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                <div class="space-y-1.5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-limeglow-400 to-emerald-500 flex items-center justify-center text-forest-950 shadow-lg shadow-limeglow-400/20">
+                            <i data-lucide="check-square" class="w-6 h-6 stroke-[2.5]"></i>
+                        </div>
+                        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                            Planning<span class="text-limeglow-400">.</span>
+                        </h1>
+                    </div>
+                    <p class="text-sm font-mono text-emerald-300/80 flex items-center gap-2 pt-1">
+                        <i data-lucide="calendar" class="w-4 h-4 text-limeglow-400"></i>
+                        <span id="current-date-display">Monday, Nov 16, 2026</span>
+                        <span class="text-forest-600">•</span>
+                        <span id="live-time-display" class="text-limeglow-300">07:30 PM</span>
+                    </p>
+                </div>
+
+                <!-- Daily Completion Meter -->
+                <div class="bg-forest-950/75 border border-forest-700/70 rounded-2xl p-4 min-w-[240px] sm:min-w-[280px]">
+                    <div class="flex items-center justify-between text-xs font-mono mb-2">
+                        <span class="text-emerald-200/80 uppercase tracking-wider">Today's Execution</span>
+                        <span id="progress-stats-text" class="text-limeglow-400 font-bold">0 / 7 Done (0%)</span>
+                    </div>
+                    <div class="w-full h-3 bg-forest-900 rounded-full overflow-hidden p-0.5 border border-forest-700/80">
+                        <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-emerald-400 to-limeglow-400 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                    </div>
+                    <div class="flex items-center justify-between mt-2.5 text-[11px] font-mono text-emerald-300/60">
+                        <span id="remaining-count-label">7 tasks remaining</span>
+                        <button onclick="resetToDefaults()" class="hover:text-limeglow-400 underline transition-colors" title="Restore initial tasks">Reset list</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. QUICK ADD TASK BAR -->
+        <section class="glass-panel rounded-2xl p-4 sm:p-5 shadow-xl">
+            <form id="add-task-form" onsubmit="handleAddTask(event)" class="space-y-3">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-limeglow-400">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                        </div>
+                        <input type="text" id="task-title-input" placeholder="What needs to get done today? (e.g., 2 hours - DSA graphs)" required
+                            class="w-full bg-forest-950/90 border border-forest-700 focus:border-limeglow-400 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-emerald-400/40 focus:outline-none transition-colors">
+                    </div>
+
+                    <button type="submit" class="px-6 py-3 rounded-xl bg-limeglow-400 hover:bg-limeglow-300 text-forest-950 font-bold text-sm transition-all shadow-lg shadow-limeglow-400/15 flex items-center justify-center gap-2 shrink-0 cursor-pointer">
+                        <i data-lucide="plus-circle" class="w-4 h-4 stroke-[2.5]"></i>
+                        <span>Schedule Task</span>
+                    </button>
+                </div>
+
+                <!-- Scheduling Mode, Time Picker & Category Tags -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Schedule Mode Toggle -->
+                        <div class="inline-flex rounded-xl bg-forest-950 p-1 border border-forest-700/80">
+                            <button type="button" id="mode-today-btn" onclick="setScheduleMode('today')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-forest-800 text-limeglow-400 border border-forest-600/50 transition-all">
+                                For Today (Anytime)
+                            </button>
+                            <button type="button" id="mode-timed-btn" onclick="setScheduleMode('timed')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-emerald-300/70 hover:text-white transition-all flex items-center gap-1.5">
+                                <i data-lucide="clock" class="w-3.5 h-3.5"></i> Specific Time
+                            </button>
+                        </div>
+
+                        <!-- Conditional Time Input -->
+                        <div id="time-picker-wrapper" class="hidden items-center gap-2 bg-forest-950 border border-limeglow-400/50 rounded-xl px-3 py-1">
+                            <span class="text-xs font-mono text-limeglow-400">At:</span>
+                            <input type="time" id="task-time-input" value="20:00" class="bg-transparent text-xs font-mono text-white focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Category Selector -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono text-emerald-300/60">Tag:</span>
+                        <select id="task-category-input" class="bg-forest-950 border border-forest-700 rounded-xl px-3 py-1.5 text-xs font-mono text-emerald-100 focus:outline-none focus:border-limeglow-400">
+                            <option value="Coursework">Coursework</option>
+                            <option value="Lab">Lab</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Xpecto">Xpecto</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- 3. FILTER TABS & VIEW CONTROLS -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-1.5 bg-forest-900/80 p-1.5 rounded-2xl border border-forest-700/60">
+                <button onclick="setFilter('all')" data-filter="all" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-limeglow-400 text-forest-950 transition-all">
+                    All Today (<span id="count-all">0</span>)
+                </button>
+                <button onclick="setFilter('timed')" data-filter="timed" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium text-emerald-200/75 hover:text-white transition-all flex items-center gap-1.5">
+                    <i data-lucide="clock" class="w-3.5 h-3.5"></i> Timed (<span id="count-timed">0</span>)
+                </button>
+                <button onclick="setFilter('anytime')" data-filter="anytime" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium text-emerald-200/75 hover:text-white transition-all">
+                    For Today / Anytime (<span id="count-anytime">0</span>)
+                </button>
+                <button onclick="setFilter('completed')" data-filter="completed" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium text-emerald-200/75 hover:text-white transition-all">
+                    Completed (<span id="count-completed">0</span>)
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="clearCompletedTasks()" id="clear-completed-btn" class="hidden px-3 py-1.5 rounded-xl bg-forest-900 hover:bg-red-950/60 text-emerald-300/70 hover:text-red-300 border border-forest-700/60 text-xs font-mono transition-all">
+                    Clear Completed
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. INTERACTIVE TASK LIST & TIMELINE -->
+        <section id="tasks-container" class="space-y-6">
+            <!-- Dynamically rendered via JS -->
+        </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- AUTOMATED REPORT PREVIEW MODAL             -->
+    <!-- ========================================== -->
+    <div id="report-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-forest-950/85 backdrop-blur-md">
+        <div class="bg-forest-900 border border-forest-600 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 relative animate-[fadeIn_0.2s_ease-out]">
+            
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between gap-4 border-b border-forest-700/80 pb-4">
+                <div class="flex items-center gap-3">
+                    <div id="modal-icon-box" class="w-11 h-11 rounded-2xl bg-limeglow-400/15 border border-limeglow-400/40 flex items-center justify-center text-limeglow-400">
+                        <i data-lucide="sunrise" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span id="modal-badge" class="text-[11px] font-mono uppercase tracking-wider text-limeglow-400 font-bold">
+                            Scheduled Notification • 8:00 AM
+                        </span>
+                        <h3 id="modal-title" class="text-xl font-bold text-white">Morning Task Briefing</h3>
+                    </div>
+                </div>
+                <button onclick="closeReportModal()" class="p-2 rounded-xl bg-forest-800 hover:bg-forest-700 text-emerald-200 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div id="modal-body" class="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
+                <!-- Populated dynamically -->
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div id="modal-footer" class="pt-3 border-t border-forest-700/80 flex flex-wrap items-center justify-between gap-2">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- EDIT TASK TIME MODAL                       -->
+    <!-- ========================================== -->
+    <div id="edit-time-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-forest-950/85 backdrop-blur-md">
+        <div class="bg-forest-900 border border-forest-600 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-white">Reschedule Task</h3>
+                <button onclick="closeEditTimeModal()" class="p-1.5 rounded-lg bg-forest-800 text-emerald-200 hover:text-white">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <p id="edit-task-name-preview" class="text-xs font-mono text-emerald-300/80 bg-forest-950 p-3 rounded-xl border border-forest-700/60"></p>
+            
+            <div class="space-y-3">
+                <label class="flex items-center gap-2.5 p-3 rounded-xl bg-forest-950 border border-forest-700 cursor-pointer">
+                    <input type="radio" name="edit-schedule-type" value="anytime" id="edit-radio-anytime" onchange="toggleEditTimeInput()" class="accent-limeglow-400">
+                    <span class="text-sm text-white">For Today (No specific time)</span>
+                </label>
+
+                <label class="flex items-center justify-between gap-2.5 p-3 rounded-xl bg-forest-950 border border-forest-700 cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                        <input type="radio" name="edit-schedule-type" value="timed" id="edit-radio-timed" onchange="toggleEditTimeInput()" class="accent-limeglow-400">
+                        <span class="text-sm text-white">Specific Time</span>
+                    </div>
+                    <input type="time" id="edit-modal-time-val" value="18:00" class="bg-forest-900 border border-forest-600 rounded-lg px-2.5 py-1 text-xs font-mono text-limeglow-300 focus:outline-none">
+                </label>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeEditTimeModal()" class="px-4 py-2 rounded-xl text-xs font-mono text-emerald-300 hover:text-white">Cancel</button>
+                <button onclick="saveEditedTime()" class="px-5 py-2 rounded-xl bg-limeglow-400 hover:bg-limeglow-300 text-forest-950 font-bold text-xs font-mono">Save Schedule</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // STATE & INITIAL DATA FOR PRAMODH
+        // ==========================================
+        const STORAGE_KEY = 'planning_app_pramodh_v1';
+
+        const INITIAL_TASKS = [
+            {
+                id: 't-1',
+                title: '2 hours - homework or imp tasks',
+                time: null,
+                category: 'Coursework',
+                completed: false,
+                dayLabel: 'Today'
+            },
+            {
+                id: 't-2',
+                title: 'Prepare for the Python Lab',
+                subtitle: 'Concept, 10 easy, 10 medium, 10 hard, 2 Impossible',
+                time: null,
+                category: 'Lab',
+                completed: false,
+                dayLabel: 'Today'
+            },
+            {
+                id: 't-3',
+                title: '2 hours - learning some new course contents',
+                time: null,
+                category: 'Coursework',
+                completed: false,
+                dayLabel: 'Today'
+            },
+            {
+                id: 't-4',
+                title: '3 hours - Every concept study',
+                time: null,
+                category: 'Coursework',
+                completed: false,
+                dayLabel: 'Today'
+            },
+            {
+                id: 't-5',
+                title: 'Wash Clothes',
+                time: null,
+                category: 'Personal',
+                completed: false,
+                dayLabel: 'Today'
+            },
+            {
+                id: 't-6',
+                title: 'Prepare for The Graphics for Design Lab',
+                time: null,
+                category: 'Lab',
+                completed: false,
+                dayLabel: 'Today'
+            },
+            {
+                id: 't-7',
+                title: 'English Advertisement',
+                time: null,
+                category: 'Coursework',
+                completed: false,
+                dayLabel: 'Today'
+            }
+        ];
+
+        let tasks = [];
+        let currentFilter = 'all';
+        let scheduleMode = 'today';
+        let editingTaskId = null;
+        let lastTriggeredMinuteKey = '';
+
+        // ==========================================
+        // PWA MANIFEST & APP ICON GENERATOR
+        // ==========================================
+        function setupPWA() {
+            const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <rect width="512" height="512" rx="112" fill="#04120b"/>
+                <rect x="24" y="24" width="464" height="464" rx="96" fill="none" stroke="#216143" stroke-width="12"/>
+                <rect x="128" y="128" width="256" height="256" rx="56" fill="#a3e635"/>
+                <polyline points="196 260 238 302 320 214" fill="none" stroke="#04120b" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>`;
+            const iconUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgIcon);
+
+            const appleLink = document.getElementById('apple-touch-icon-link');
+            if (appleLink) appleLink.href = iconUrl;
+
+            const manifest = {
+                name: 'Planning - Daily Schedule & Focus',
+                short_name: 'Planning',
+                description: 'Daily task scheduler with morning briefings and end-of-day reports.',
+                start_url: '.',
+                display: 'standalone',
+                background_color: '#04120b',
+                theme_color: '#04120b',
+                icons: [
+                    {
+                        src: iconUrl,
+                        sizes: '192x192',
+                        type: 'image/svg+xml',
+                        purpose: 'any maskable'
+                    },
+                    {
+                        src: iconUrl,
+                        sizes: '512x512',
+                        type: 'image/svg+xml',
+                        purpose: 'any maskable'
+                    }
+                ]
+            };
+
+            const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+            const manifestUrl = URL.createObjectURL(blob);
+            const manifestLink = document.getElementById('pwa-manifest-link');
+            if (manifestLink) manifestLink.href = manifestUrl;
+        }
+
+        // ==========================================
+        // NATIVE BROWSER PUSH NOTIFICATIONS
+        // ==========================================
+        function updateNotificationButtonUI() {
+            const btn = document.getElementById('notif-permission-btn');
+            const label = document.getElementById('notif-btn-label');
+            if (!btn || !label) return;
+
+            if (!('Notification' in window)) {
+                label.textContent = 'Alerts N/A';
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                btn.className = 'px-2.5 py-1 rounded-md bg-forest-800 hover:bg-forest-700 text-limeglow-400 border border-limeglow-400/50 transition-all flex items-center gap-1.5';
+                label.textContent = 'Test Alert';
+                btn.title = 'Notifications active! Click to send a test push notification';
+            } else if (Notification.permission === 'denied') {
+                btn.className = 'px-2.5 py-1 rounded-md bg-red-950/60 text-red-300 border border-red-800/60 transition-all flex items-center gap-1.5';
+                label.textContent = 'Alerts Blocked';
+                btn.title = 'Unblock notifications in your browser site settings';
+            } else {
+                label.textContent = 'Enable Alerts';
+            }
+        }
+
+        async function handleNotificationButton() {
+            if (!('Notification' in window)) {
+                showToast('Browser notifications are not supported on this device');
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                sendNativeNotification(
+                    'Planning • Alerts Active',
+                    'You will receive your 8:00 AM briefing, 9:00 PM report, and timed task alerts!'
+                );
+                showToast('Sent test push notification');
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                showToast('Notifications blocked—enable them in browser site settings');
+                return;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                updateNotificationButtonUI();
+                if (permission === 'granted') {
+                    sendNativeNotification(
+                        'Planning • Notifications Enabled',
+                        'Daily 8:00 AM morning briefing and 9:00 PM uncompleted report are ready.'
+                    );
+                    showToast('Push notifications enabled!');
+                }
+            } catch (err) {
+                showToast('Could not request notification permission');
+            }
+        }
+
+        function sendNativeNotification(title, body) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            try {
+                const notif = new Notification(title, {
+                    body: body,
+                    tag: 'planning-app-alert',
+                    renotify: true
+                });
+                notif.onclick = () => {
+                    window.focus();
+                    notif.close();
+                };
+            } catch (e) {
+                showToast(`${title}: ${body}`);
+            }
+        }
+
+        function checkScheduledNotifications(now) {
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const currentHHMM = `${hh}:${mm}`;
+            const dateStamp = now.toDateString();
+            const triggerKey = `${dateStamp}_${currentHHMM}`;
+
+            if (triggerKey === lastTriggeredMinuteKey) return;
+            lastTriggeredMinuteKey = triggerKey;
+
+            const activeTasks = tasks.filter(t => !t.completed);
+
+            // 1. Daily 08:00 AM Morning Briefing
+            if (currentHHMM === '08:00') {
+                const previewList = activeTasks.slice(0, 3).map(t => `• ${t.title}`).join('\n');
+                const extra = activeTasks.length > 3 ? `\n+${activeTasks.length - 3} more tasks` : '';
+                sendNativeNotification(
+                    `Good Morning! ${activeTasks.length} Tasks Today`,
+                    activeTasks.length > 0 ? `${previewList}${extra}` : 'Your schedule is clear today!'
+                );
+            }
+
+            // 2. Daily 09:00 PM Uncompleted Stuff Report
+            if (currentHHMM === '21:00') {
+                if (activeTasks.length > 0) {
+                    const pendingList = activeTasks.slice(0, 3).map(t => `• ${t.title}`).join('\n');
+                    sendNativeNotification(
+                        `9:00 PM Report: ${activeTasks.length} Uncompleted`,
+                        `Still pending:\n${pendingList}`
+                    );
+                } else {
+                    sendNativeNotification(
+                        '9:00 PM Report: 100% Complete!',
+                        'Awesome job—you finished every single task today.'
+                    );
+                }
+            }
+
+            // 3. Specific Timed Task Alerts
+            activeTasks.forEach(task => {
+                if (task.time === currentHHMM) {
+                    sendNativeNotification(
+                        `Scheduled Now (${formatTime12h(task.time)})`,
+                        task.title
+                    );
+                }
+            });
+        }
+
+        // ==========================================
+        // INITIALIZATION & PERSISTENCE
+        // ==========================================
+        function initApp() {
+            setupPWA();
+            updateNotificationButtonUI();
+
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    tasks = JSON.parse(saved);
+                } catch (e) {
+                    tasks = structuredClone(INITIAL_TASKS);
+                }
+            } else {
+                tasks = structuredClone(INITIAL_TASKS);
+                saveTasks();
+            }
+
+            updateClock();
+            setInterval(updateClock, 1000);
+            renderAll();
+        }
+
+        function saveTasks() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        }
+
+        function resetToDefaults() {
+            tasks = structuredClone(INITIAL_TASKS);
+            saveTasks();
+            renderAll();
+            showToast('Restored your default Planning task list');
+        }
+
+        // ==========================================
+        // CLOCK & DATE DISPLAY
+        // ==========================================
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            document.getElementById('live-time-display').textContent = timeStr;
+            checkScheduledNotifications(now);
+        }
+
+        function formatTime12h(time24) {
+            if (!time24) return '';
+            const [hStr, mStr] = time24.split(':');
+            let h = parseInt(hStr, 10);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h}:${mStr} ${ampm}`;
+        }
+
+        // ==========================================
+        // ADDING & SCHEDULING TASKS
+        // ==========================================
+        function setScheduleMode(mode) {
+            scheduleMode = mode;
+            const todayBtn = document.getElementById('mode-today-btn');
+            const timedBtn = document.getElementById('mode-timed-btn');
+            const timeWrapper = document.getElementById('time-picker-wrapper');
+
+            if (mode === 'today') {
+                todayBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-forest-800 text-limeglow-400 border border-forest-600/50 transition-all';
+                timedBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-emerald-300/70 hover:text-white transition-all flex items-center gap-1.5';
+                timeWrapper.classList.add('hidden');
+                timeWrapper.classList.remove('flex');
+            } else {
+                timedBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-forest-800 text-limeglow-400 border border-forest-600/50 transition-all flex items-center gap-1.5';
+                todayBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-emerald-300/70 hover:text-white transition-all';
+                timeWrapper.classList.remove('hidden');
+                timeWrapper.classList.add('flex');
+            }
+        }
+
+        function handleAddTask(e) {
+            e.preventDefault();
+            const titleInput = document.getElementById('task-title-input');
+            const timeInput = document.getElementById('task-time-input');
+            const categoryInput = document.getElementById('task-category-input');
+
+            const rawTitle = titleInput.value.trim();
+            if (!rawTitle) return;
+
+            const newTask = {
+                id: 't-' + Date.now(),
+                title: rawTitle,
+                time: scheduleMode === 'timed' ? timeInput.value : null,
+                category: categoryInput.value,
+                completed: false,
+                dayLabel: 'Today'
+            };
+
+            tasks.unshift(newTask);
+            saveTasks();
+            titleInput.value = '';
+            renderAll();
+
+            const whenMsg = newTask.time ? `scheduled for ${formatTime12h(newTask.time)}` : 'added for Today';
+            showToast(`Task ${whenMsg}`);
+        }
+
+        // ==========================================
+        // TASK ACTIONS (TOGGLE, DELETE, RESCHEDULE)
+        // ==========================================
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            task.completed = !task.completed;
+            saveTasks();
+            renderAll();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderAll();
+            showToast('Task removed');
+        }
+
+        function clearCompletedTasks() {
+            tasks = tasks.filter(t => !t.completed);
+            saveTasks();
+            renderAll();
+            showToast('Cleared completed tasks');
+        }
+
+        // Edit Time Modal
+        function openEditTimeModal(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            editingTaskId = id;
+
+            document.getElementById('edit-task-name-preview').textContent = task.title;
+            const radioAnytime = document.getElementById('edit-radio-anytime');
+            const radioTimed = document.getElementById('edit-radio-timed');
+            const timeVal = document.getElementById('edit-modal-time-val');
+
+            if (task.time) {
+                radioTimed.checked = true;
+                timeVal.value = task.time;
+            } else {
+                radioAnytime.checked = true;
+            }
+            toggleEditTimeInput();
+
+            const modal = document.getElementById('edit-time-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditTimeModal() {
+            editingTaskId = null;
+            const modal = document.getElementById('edit-time-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function toggleEditTimeInput() {
+            const isTimed = document.getElementById('edit-radio-timed').checked;
+            const timeVal = document.getElementById('edit-modal-time-val');
+            timeVal.disabled = !isTimed;
+            timeVal.style.opacity = isTimed ? '1' : '0.4';
+        }
+
+        function saveEditedTime() {
+            if (!editingTaskId) return;
+            const task = tasks.find(t => t.id === editingTaskId);
+            if (task) {
+                const isTimed = document.getElementById('edit-radio-timed').checked;
+                task.time = isTimed ? document.getElementById('edit-modal-time-val').value : null;
+                saveTasks();
+                renderAll();
+                showToast(task.time ? `Scheduled for ${formatTime12h(task.time)}` : 'Moved to Anytime Today');
+            }
+            closeEditTimeModal();
+        }
+
+        // ==========================================
+        // FILTERING & RENDERING
+        // ==========================================
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(btn => {
+                if (btn.dataset.filter === filter) {
+                    btn.className = 'filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-limeglow-400 text-forest-950 transition-all';
+                } else {
+                    btn.className = 'filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium text-emerald-200/75 hover:text-white transition-all';
+                }
+            });
+            renderAll();
+        }
+
+        function getCategoryBadgeClasses(cat) {
+            switch (cat) {
+                case 'Lab':
+                    return 'bg-limeglow-400/15 text-limeglow-300 border-limeglow-400/30';
+                case 'Coursework':
+                    return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+                case 'Xpecto':
+                    return 'bg-teal-400/15 text-teal-300 border-teal-400/30';
+                default:
+                    return 'bg-forest-700/60 text-emerald-100 border-forest-600/60';
+            }
+        }
+
+        function renderTaskCard(task) {
+            const badgeStyle = getCategoryBadgeClasses(task.category);
+            const timeBadge = task.time
+                ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-mono font-semibold bg-limeglow-400 text-forest-950">
+                        <i data-lucide="clock" class="w-3 h-3 stroke-[2.5]"></i> ${formatTime12h(task.time)}
+                   </span>`
+                : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-mono bg-forest-800 text-emerald-300/80 border border-forest-700">
+                        ${task.dayLabel || 'Today'}
+                   </span>`;
+
+            return `
+                <div class="group glass-panel hover:border-limeglow-400/40 rounded-2xl p-4 transition-all duration-200 flex items-start sm:items-center justify-between gap-3 ${task.completed ? 'opacity-60 bg-forest-950/50' : ''}">
+                    <div class="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}')" class="task-checkbox mt-0.5 sm:mt-0" aria-label="Mark task complete">
+                        
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-sm sm:text-base font-medium transition-all ${task.completed ? 'line-through text-emerald-300/50' : 'text-white'}">
+                                    ${escapeHtml(task.title)}
+                                </span>
+                            </div>
+                            ${task.subtitle ? `
+                                <p class="text-xs font-mono text-limeglow-300/85 mt-1 flex items-center gap-1.5">
+                                    <i data-lucide="layers" class="w-3.5 h-3.5 shrink-0"></i>
+                                    <span>${escapeHtml(task.subtitle)}</span>
+                                </p>
+                            ` : ''}
+                            <div class="flex flex-wrap items-center gap-2 mt-2">
+                                ${timeBadge}
+                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-mono border ${badgeStyle}">
+                                    ${escapeHtml(task.category)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="openEditTimeModal('${task.id}')" class="p-2 rounded-xl bg-forest-900/90 hover:bg-forest-700 text-emerald-300/80 hover:text-limeglow-300 border border-forest-700/70 transition-colors" title="Set or edit time">
+                            <i data-lucide="clock" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteTask('${task.id}')" class="p-2 rounded-xl bg-forest-900/90 hover:bg-red-950/70 text-emerald-300/60 hover:text-red-400 border border-forest-700/70 transition-colors" title="Delete task">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAll() {
+            const total = tasks.length;
+            const completedTasks = tasks.filter(t => t.completed);
+            const activeTasks = tasks.filter(t => !t.completed);
+            const timedTasks = activeTasks.filter(t => t.time !== null).sort((a, b) => a.time.localeCompare(b.time));
+            const anytimeTasks = activeTasks.filter(t => t.time === null);
+
+            // Update Progress Bar & Stats
+            const pct = total === 0 ? 0 : Math.round((completedTasks.length / total) * 100);
+            document.getElementById('progress-stats-text').textContent = `${completedTasks.length} / ${total} Done (${pct}%)`;
+            document.getElementById('progress-bar-fill').style.width = `${pct}%`;
+            document.getElementById('remaining-count-label').textContent = `${activeTasks.length} task${activeTasks.length === 1 ? '' : 's'} remaining`;
+
+            // Update Filter Tab Counters
+            document.getElementById('count-all').textContent = total;
+            document.getElementById('count-timed').textContent = timedTasks.length;
+            document.getElementById('count-anytime').textContent = anytimeTasks.length;
+            document.getElementById('count-completed').textContent = completedTasks.length;
+
+            // Show/Hide Clear Completed Button
+            const clearBtn = document.getElementById('clear-completed-btn');
+            if (completedTasks.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+
+            const container = document.getElementById('tasks-container');
+            let html = '';
+
+            if (currentFilter === 'all') {
+                // Section 1: Timed Schedule
+                if (timedTasks.length > 0) {
+                    html += `
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between px-1">
+                                <h2 class="text-xs font-mono uppercase tracking-wider text-limeglow-400 font-bold flex items-center gap-2">
+                                    <i data-lucide="clock" class="w-4 h-4"></i> Timed Schedule (${timedTasks.length})
+                                </h2>
+                            </div>
+                            <div class="space-y-2.5">
+                                ${timedTasks.map(renderTaskCard).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Section 2: Scheduled for Today (Anytime)
+                html += `
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between px-1">
+                            <h2 class="text-xs font-mono uppercase tracking-wider text-emerald-300/80 font-bold flex items-center gap-2">
+                                <i data-lucide="sun" class="w-4 h-4 text-limeglow-400"></i> Scheduled for Today (${anytimeTasks.length})
+                            </h2>
+                        </div>
+                        ${anytimeTasks.length > 0
+                            ? `<div class="space-y-2.5">${anytimeTasks.map(renderTaskCard).join('')}</div>`
+                            : `<div class="glass-panel rounded-2xl p-6 text-center text-sm font-mono text-emerald-300/60">All unscheduled tasks for today are cleared!</div>`
+                        }
+                    </div>
+                `;
+
+                // Section 3: Completed
+                if (completedTasks.length > 0) {
+                    html += `
+                        <div class="space-y-3 pt-2">
+                            <div class="flex items-center justify-between px-1">
+                                <h2 class="text-xs font-mono uppercase tracking-wider text-emerald-400/50 font-bold flex items-center gap-2">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Completed (${completedTasks.length})
+                                </h2>
+                            </div>
+                            <div class="space-y-2">
+                                ${completedTasks.map(renderTaskCard).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            } else if (currentFilter === 'timed') {
+                html = timedTasks.length > 0
+                    ? `<div class="space-y-2.5">${timedTasks.map(renderTaskCard).join('')}</div>`
+                    : `<div class="glass-panel rounded-2xl p-8 text-center space-y-2">
+                            <p class="text-sm font-mono text-emerald-200/70">No tasks locked to a specific clock time yet.</p>
+                            <p class="text-xs text-emerald-400/50">Click the clock icon on any task to assign a specific time slot.</p>
+                       </div>`;
+            } else if (currentFilter === 'anytime') {
+                html = anytimeTasks.length > 0
+                    ? `<div class="space-y-2.5">${anytimeTasks.map(renderTaskCard).join('')}</div>`
+                    : `<div class="glass-panel rounded-2xl p-8 text-center text-sm font-mono text-emerald-200/70">No unscheduled tasks remaining!</div>`;
+            } else if (currentFilter === 'completed') {
+                html = completedTasks.length > 0
+                    ? `<div class="space-y-2.5">${completedTasks.map(renderTaskCard).join('')}</div>`
+                    : `<div class="glass-panel rounded-2xl p-8 text-center text-sm font-mono text-emerald-200/70">No tasks completed yet—check one off to build momentum!</div>`;
+            }
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // AUTOMATED BRIEFING & REPORT MODALS
+        // ==========================================
+        function openReportModal(type) {
+            const modal = document.getElementById('report-modal');
+            const iconBox = document.getElementById('modal-icon-box');
+            const badge = document.getElementById('modal-badge');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const footer = document.getElementById('modal-footer');
+
+            const activeTasks = tasks.filter(t => !t.completed);
+            const completedTasks = tasks.filter(t => t.completed);
+
+            if (type === 'morning') {
+                iconBox.innerHTML = `<i data-lucide="sunrise" class="w-6 h-6"></i>`;
+                badge.textContent = 'Automated Routine • 8:00 AM Daily';
+                title.textContent = "Morning Briefing: Today's Lineup";
+
+                const timed = activeTasks.filter(t => t.time).sort((a, b) => a.time.localeCompare(b.time));
+                const anytime = activeTasks.filter(t => !t.time);
+
+                body.innerHTML = `
+                    <div class="p-3.5 rounded-2xl bg-forest-950/90 border border-forest-700/70 text-xs font-mono text-emerald-200 leading-relaxed">
+                        Good morning, Pramodh! You have <strong class="text-limeglow-400">${activeTasks.length} active tasks</strong> lined up for Monday, Nov 16.
+                    </div>
+                    ${timed.length > 0 ? `
+                        <div class="space-y-1.5">
+                            <p class="text-[11px] font-mono uppercase text-limeglow-400 font-bold">Timed Blocks</p>
+                            ${timed.map(t => `
+                                <div class="p-3 rounded-xl bg-forest-850 border border-forest-700/60 flex items-center justify-between gap-2 text-xs">
+                                    <span class="text-white font-medium">${escapeHtml(t.title)}</span>
+                                    <span class="font-mono text-limeglow-300 shrink-0">${formatTime12h(t.time)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="space-y-1.5">
+                        <p class="text-[11px] font-mono uppercase text-emerald-300/70 font-bold">Today's Focus Queue (${anytime.length})</p>
+                        ${anytime.length > 0 ? anytime.map(t => `
+                            <div class="p-3 rounded-xl bg-forest-950/70 border border-forest-700/50 text-xs space-y-1">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-white font-medium">• ${escapeHtml(t.title)}</span>
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-forest-800 text-emerald-300">${escapeHtml(t.category)}</span>
+                                </div>
+                                ${t.subtitle ? `<p class="text-[11px] font-mono text-limeglow-300/80 pl-3">${escapeHtml(t.subtitle)}</p>` : ''}
+                            </div>
+                        `).join('') : `<p class="text-xs font-mono text-emerald-400/60">No unscheduled tasks.</p>`}
+                    </div>
+                `;
+
+                footer.innerHTML = `
+                    <span class="text-[11px] font-mono text-emerald-300/60">Push notification enabled on mobile</span>
+                    <button onclick="closeReportModal()" class="px-5 py-2 rounded-xl bg-limeglow-400 hover:bg-limeglow-300 text-forest-950 font-bold text-xs font-mono">
+                        Let's Execute
+                    </button>
+                `;
+            } else {
+                // 9:00 PM Uncompleted Report
+                iconBox.innerHTML = `<i data-lucide="moon" class="w-6 h-6"></i>`;
+                badge.textContent = 'End-of-Day Recap • 9:00 PM Daily';
+                title.textContent = 'Uncompleted Stuff Report';
+
+                body.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div class="p-3 rounded-2xl bg-forest-950 border border-forest-700/70">
+                            <span class="text-[11px] font-mono text-emerald-300/60 block">Completed Today</span>
+                            <span class="text-xl font-extrabold text-limeglow-400 font-mono">${completedTasks.length}</span>
+                        </div>
+                        <div class="p-3 rounded-2xl bg-forest-950 border border-forest-700/70">
+                            <span class="text-[11px] font-mono text-emerald-300/60 block">Still Pending</span>
+                            <span class="text-xl font-extrabold text-amber-300 font-mono">${activeTasks.length}</span>
+                        </div>
+                    </div>
+
+                    ${activeTasks.length > 0 ? `
+                        <p class="text-xs font-mono text-emerald-200/80 pt-1">Remaining items from today:</p>
+                        <div class="space-y-2">
+                            ${activeTasks.map(t => `
+                                <div class="p-3 rounded-xl bg-forest-950/90 border border-forest-700/70 flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-medium text-white truncate">${escapeHtml(t.title)}</p>
+                                        ${t.subtitle ? `<p class="text-[10px] font-mono text-limeglow-300/80 truncate">${escapeHtml(t.subtitle)}</p>` : ''}
+                                    </div>
+                                    <button onclick="markDoneFromModal('${t.id}')" class="px-2.5 py-1 rounded-lg bg-forest-800 hover:bg-limeglow-400 text-limeglow-300 hover:text-forest-950 border border-forest-600 text-[11px] font-mono font-semibold shrink-0 transition-colors">
+                                        Mark Done
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="p-5 rounded-2xl bg-limeglow-400/10 border border-limeglow-400/30 text-center space-y-1">
+                            <p class="text-sm font-bold text-limeglow-300">100% Cleared! Zero uncompleted tasks.</p>
+                            <p class="text-xs font-mono text-emerald-200/70">Clean sweep for the day, Pramodh.</p>
+                        </div>
+                    `}
+                `;
+
+                footer.innerHTML = `
+                    ${activeTasks.length > 0 ? `
+                        <button onclick="carryOverUncompleted()" class="px-4 py-2 rounded-xl bg-forest-800 hover:bg-forest-700 text-limeglow-300 border border-forest-600 text-xs font-mono font-semibold flex items-center gap-1.5">
+                            <i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Carry Over (${activeTasks.length}) to Tomorrow
+                        </button>
+                    ` : `<span></span>`}
+                    <button onclick="closeReportModal()" class="px-5 py-2 rounded-xl bg-limeglow-400 hover:bg-limeglow-300 text-forest-950 font-bold text-xs font-mono">
+                        Close Report
+                    </button>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeReportModal() {
+            const modal = document.getElementById('report-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function markDoneFromModal(id) {
+            toggleTask(id);
+            openReportModal('evening');
+        }
+
+        function carryOverUncompleted() {
+            let count = 0;
+            tasks.forEach(t => {
+                if (!t.completed) {
+                    t.dayLabel = 'Tomorrow (Carried Over)';
+                    count++;
+                }
+            });
+            saveTasks();
+            renderAll();
+            closeReportModal();
+            showToast(`Carried over ${count} uncompleted tasks to Tomorrow`);
+        }
+
+        // ==========================================
+        // UTILITIES & TOAST NOTIFICATIONS
+        // ==========================================
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'px-4 py-2.5 rounded-xl bg-forest-900 border border-limeglow-400/60 text-limeglow-300 font-mono text-xs shadow-xl flex items-center gap-2 transition-all duration-300';
+            toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-limeglow-400 shrink-0"></i><span>${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // Boot app
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
