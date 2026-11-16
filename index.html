@@ -121,7 +121,8 @@
         }
 
         /* Time picker dark calendar icon fix */
-        input[type="time"]::-webkit-calendar-picker-indicator {
+        input[type="time"]::-webkit-calendar-picker-indicator,
+        input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(82%) sepia(56%) saturate(566%) hue-rotate(34deg) brightness(98%) contrast(92%);
             cursor: pointer;
         }
@@ -203,7 +204,7 @@
                         <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-emerald-400 to-limeglow-400 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
                     </div>
                     <div class="flex items-center justify-between mt-2.5 text-[11px] font-mono text-emerald-300/60">
-                        <span id="remaining-count-label">7 tasks remaining</span>
+                        <span id="remaining-count-label">7 tasks remaining today</span>
                         <button onclick="resetToDefaults()" class="hover:text-limeglow-400 underline transition-colors" title="Restore initial tasks">Reset list</button>
                     </div>
                 </div>
@@ -218,7 +219,7 @@
                         <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-limeglow-400">
                             <i data-lucide="plus" class="w-5 h-5"></i>
                         </div>
-                        <input type="text" id="task-title-input" placeholder="What needs to get done today? (e.g., 2 hours - DSA graphs)" required
+                        <input type="text" id="task-title-input" placeholder="What needs to get done? (e.g., 2 hours - DSA graphs)" required
                             class="w-full bg-forest-950/90 border border-forest-700 focus:border-limeglow-400 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-emerald-400/40 focus:outline-none transition-colors">
                     </div>
 
@@ -228,13 +229,29 @@
                     </button>
                 </div>
 
-                <!-- Scheduling Mode, Time Picker & Category Tags -->
+                <!-- Scheduling Mode, Date, Time, Recurrence & Category Tags -->
                 <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
                     <div class="flex flex-wrap items-center gap-2">
-                        <!-- Schedule Mode Toggle -->
+                        <!-- Date Selector: Today vs Future Date -->
+                        <div class="inline-flex rounded-xl bg-forest-950 p-1 border border-forest-700/80">
+                            <button type="button" id="date-today-btn" onclick="setDateMode('today')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-forest-800 text-limeglow-400 border border-forest-600/50 transition-all">
+                                Today
+                            </button>
+                            <button type="button" id="date-future-btn" onclick="setDateMode('future')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-emerald-300/70 hover:text-white transition-all flex items-center gap-1.5">
+                                <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> Future Date
+                            </button>
+                        </div>
+
+                        <!-- Conditional Future Date Input -->
+                        <div id="date-picker-wrapper" class="hidden items-center gap-2 bg-forest-950 border border-limeglow-400/50 rounded-xl px-3 py-1">
+                            <span class="text-xs font-mono text-limeglow-400">On:</span>
+                            <input type="date" id="task-date-input" class="bg-transparent text-xs font-mono text-white focus:outline-none">
+                        </div>
+
+                        <!-- Schedule Time Toggle -->
                         <div class="inline-flex rounded-xl bg-forest-950 p-1 border border-forest-700/80">
                             <button type="button" id="mode-today-btn" onclick="setScheduleMode('today')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-forest-800 text-limeglow-400 border border-forest-600/50 transition-all">
-                                For Today (Anytime)
+                                Anytime
                             </button>
                             <button type="button" id="mode-timed-btn" onclick="setScheduleMode('timed')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-emerald-300/70 hover:text-white transition-all flex items-center gap-1.5">
                                 <i data-lucide="clock" class="w-3.5 h-3.5"></i> Specific Time
@@ -248,15 +265,27 @@
                         </div>
                     </div>
 
-                    <!-- Category Selector -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-mono text-emerald-300/60">Tag:</span>
-                        <select id="task-category-input" class="bg-forest-950 border border-forest-700 rounded-xl px-3 py-1.5 text-xs font-mono text-emerald-100 focus:outline-none focus:border-limeglow-400">
-                            <option value="Coursework">Coursework</option>
-                            <option value="Lab">Lab</option>
-                            <option value="Personal">Personal</option>
-                            <option value="Xpecto">Xpecto</option>
-                        </select>
+                    <!-- Recurrence & Category Selector -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="repeat" class="w-3.5 h-3.5 text-limeglow-400"></i>
+                            <select id="task-recurrence-input" class="bg-forest-950 border border-forest-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-emerald-100 focus:outline-none focus:border-limeglow-400">
+                                <option value="none">One-Time</option>
+                                <option value="daily">Every Day (Daily)</option>
+                                <option value="weekdays">Weekdays (Mon–Fri)</option>
+                                <option value="weekends">Weekends (Sat–Sun)</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs font-mono text-emerald-300/60">Tag:</span>
+                            <select id="task-category-input" class="bg-forest-950 border border-forest-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-emerald-100 focus:outline-none focus:border-limeglow-400">
+                                <option value="Coursework">Coursework</option>
+                                <option value="Lab">Lab</option>
+                                <option value="Personal">Personal</option>
+                                <option value="Xpecto">Xpecto</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -266,13 +295,16 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex flex-wrap items-center gap-1.5 bg-forest-900/80 p-1.5 rounded-2xl border border-forest-700/60">
                 <button onclick="setFilter('all')" data-filter="all" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-limeglow-400 text-forest-950 transition-all">
-                    All Today (<span id="count-all">0</span>)
+                    Today (<span id="count-all">0</span>)
                 </button>
                 <button onclick="setFilter('timed')" data-filter="timed" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium text-emerald-200/75 hover:text-white transition-all flex items-center gap-1.5">
                     <i data-lucide="clock" class="w-3.5 h-3.5"></i> Timed (<span id="count-timed">0</span>)
                 </button>
-                <button onclick="setFilter('anytime')" data-filter="anytime" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium text-emerald-200/75 hover:text-white transition-all">
-                    For Today / Anytime (<span id="count-anytime">0</span>)
+                <button onclick="setFilter('daily')" data-filter="daily" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium text-emerald-200/75 hover:text-white transition-all flex items-center gap-1.5">
+                    <i data-lucide="repeat" class="w-3.5 h-3.5"></i> Daily / Routine (<span id="count-daily">0</span>)
+                </button>
+                <button onclick="setFilter('upcoming')" data-filter="upcoming" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium text-emerald-200/75 hover:text-white transition-all flex items-center gap-1.5">
+                    <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i> Upcoming (<span id="count-upcoming">0</span>)
                 </button>
                 <button onclick="setFilter('completed')" data-filter="completed" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium text-emerald-200/75 hover:text-white transition-all">
                     Completed (<span id="count-completed">0</span>)
@@ -298,7 +330,6 @@
     <!-- ========================================== -->
     <div id="report-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-forest-950/85 backdrop-blur-md">
         <div class="bg-forest-900 border border-forest-600 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 relative animate-[fadeIn_0.2s_ease-out]">
-            
             <!-- Modal Header -->
             <div class="flex items-start justify-between gap-4 border-b border-forest-700/80 pb-4">
                 <div class="flex items-center gap-3">
@@ -318,24 +349,20 @@
             </div>
 
             <!-- Modal Body -->
-            <div id="modal-body" class="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
-                <!-- Populated dynamically -->
-            </div>
+            <div id="modal-body" class="space-y-3 max-h-[55vh] overflow-y-auto pr-1"></div>
 
             <!-- Modal Footer Actions -->
-            <div id="modal-footer" class="pt-3 border-t border-forest-700/80 flex flex-wrap items-center justify-between gap-2">
-                <!-- Populated dynamically -->
-            </div>
+            <div id="modal-footer" class="pt-3 border-t border-forest-700/80 flex flex-wrap items-center justify-between gap-2"></div>
         </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- EDIT TASK TIME MODAL                       -->
+    <!-- EDIT TASK TIME / DATE / RECURRENCE MODAL   -->
     <!-- ========================================== -->
     <div id="edit-time-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-forest-950/85 backdrop-blur-md">
         <div class="bg-forest-900 border border-forest-600 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-white">Reschedule Task</h3>
+                <h3 class="text-lg font-bold text-white">Reschedule & Repeat</h3>
                 <button onclick="closeEditTimeModal()" class="p-1.5 rounded-lg bg-forest-800 text-emerald-200 hover:text-white">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
@@ -343,9 +370,24 @@
             <p id="edit-task-name-preview" class="text-xs font-mono text-emerald-300/80 bg-forest-950 p-3 rounded-xl border border-forest-700/60"></p>
             
             <div class="space-y-3">
+                <div class="p-3 rounded-xl bg-forest-950 border border-forest-700 flex items-center justify-between gap-2">
+                    <span class="text-xs font-mono text-emerald-200">Date:</span>
+                    <input type="date" id="edit-modal-date-val" class="bg-forest-900 border border-forest-600 rounded-lg px-2.5 py-1 text-xs font-mono text-limeglow-300 focus:outline-none">
+                </div>
+
+                <div class="p-3 rounded-xl bg-forest-950 border border-forest-700 flex items-center justify-between gap-2">
+                    <span class="text-xs font-mono text-emerald-200">Repeat:</span>
+                    <select id="edit-modal-recurrence-val" class="bg-forest-900 border border-forest-600 rounded-lg px-2.5 py-1 text-xs font-mono text-limeglow-300 focus:outline-none">
+                        <option value="none">One-Time</option>
+                        <option value="daily">Every Day (Daily)</option>
+                        <option value="weekdays">Weekdays (Mon–Fri)</option>
+                        <option value="weekends">Weekends (Sat–Sun)</option>
+                    </select>
+                </div>
+
                 <label class="flex items-center gap-2.5 p-3 rounded-xl bg-forest-950 border border-forest-700 cursor-pointer">
                     <input type="radio" name="edit-schedule-type" value="anytime" id="edit-radio-anytime" onchange="toggleEditTimeInput()" class="accent-limeglow-400">
-                    <span class="text-sm text-white">For Today (No specific time)</span>
+                    <span class="text-sm text-white">Anytime on Date</span>
                 </label>
 
                 <label class="flex items-center justify-between gap-2.5 p-3 rounded-xl bg-forest-950 border border-forest-700 cursor-pointer">
@@ -365,16 +407,33 @@
     </div>
 
     <script>
-        // ==========================================
-        // STATE & INITIAL DATA FOR PRAMODH
-        // ==========================================
         const STORAGE_KEY = 'planning_app_pramodh_v1';
+        const LAST_RESET_DATE_KEY = 'planning_app_last_reset_date';
+
+        function getTodayISO() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function getTomorrowISO() {
+            const tom = new Date();
+            tom.setDate(tom.getDate() + 1);
+            const y = tom.getFullYear();
+            const m = String(tom.getMonth() + 1).padStart(2, '0');
+            const d = String(tom.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
 
         const INITIAL_TASKS = [
             {
                 id: 't-1',
                 title: '2 hours - homework or imp tasks',
                 time: null,
+                date: getTodayISO(),
+                recurrence: 'daily',
                 category: 'Coursework',
                 completed: false,
                 dayLabel: 'Today'
@@ -384,6 +443,8 @@
                 title: 'Prepare for the Python Lab',
                 subtitle: 'Concept, 10 easy, 10 medium, 10 hard, 2 Impossible',
                 time: null,
+                date: getTodayISO(),
+                recurrence: 'none',
                 category: 'Lab',
                 completed: false,
                 dayLabel: 'Today'
@@ -392,6 +453,8 @@
                 id: 't-3',
                 title: '2 hours - learning some new course contents',
                 time: null,
+                date: getTodayISO(),
+                recurrence: 'daily',
                 category: 'Coursework',
                 completed: false,
                 dayLabel: 'Today'
@@ -400,6 +463,8 @@
                 id: 't-4',
                 title: '3 hours - Every concept study',
                 time: null,
+                date: getTodayISO(),
+                recurrence: 'daily',
                 category: 'Coursework',
                 completed: false,
                 dayLabel: 'Today'
@@ -408,6 +473,8 @@
                 id: 't-5',
                 title: 'Wash Clothes',
                 time: null,
+                date: getTodayISO(),
+                recurrence: 'none',
                 category: 'Personal',
                 completed: false,
                 dayLabel: 'Today'
@@ -416,6 +483,8 @@
                 id: 't-6',
                 title: 'Prepare for The Graphics for Design Lab',
                 time: null,
+                date: getTodayISO(),
+                recurrence: 'none',
                 category: 'Lab',
                 completed: false,
                 dayLabel: 'Today'
@@ -424,6 +493,8 @@
                 id: 't-7',
                 title: 'English Advertisement',
                 time: null,
+                date: getTodayISO(),
+                recurrence: 'none',
                 category: 'Coursework',
                 completed: false,
                 dayLabel: 'Today'
@@ -433,12 +504,10 @@
         let tasks = [];
         let currentFilter = 'all';
         let scheduleMode = 'today';
+        let dateMode = 'today';
         let editingTaskId = null;
         let lastTriggeredMinuteKey = '';
 
-        // ==========================================
-        // PWA MANIFEST & APP ICON GENERATOR
-        // ==========================================
         function setupPWA() {
             const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <rect width="512" height="512" rx="112" fill="#04120b"/>
@@ -460,18 +529,8 @@
                 background_color: '#04120b',
                 theme_color: '#04120b',
                 icons: [
-                    {
-                        src: iconUrl,
-                        sizes: '192x192',
-                        type: 'image/svg+xml',
-                        purpose: 'any maskable'
-                    },
-                    {
-                        src: iconUrl,
-                        sizes: '512x512',
-                        type: 'image/svg+xml',
-                        purpose: 'any maskable'
-                    }
+                    { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+                    { src: iconUrl, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
                 ]
             };
 
@@ -481,9 +540,6 @@
             if (manifestLink) manifestLink.href = manifestUrl;
         }
 
-        // ==========================================
-        // NATIVE BROWSER PUSH NOTIFICATIONS
-        // ==========================================
         function updateNotificationButtonUI() {
             const btn = document.getElementById('notif-permission-btn');
             const label = document.getElementById('notif-btn-label');
@@ -497,11 +553,9 @@
             if (Notification.permission === 'granted') {
                 btn.className = 'px-2.5 py-1 rounded-md bg-forest-800 hover:bg-forest-700 text-limeglow-400 border border-limeglow-400/50 transition-all flex items-center gap-1.5';
                 label.textContent = 'Test Alert';
-                btn.title = 'Notifications active! Click to send a test push notification';
             } else if (Notification.permission === 'denied') {
                 btn.className = 'px-2.5 py-1 rounded-md bg-red-950/60 text-red-300 border border-red-800/60 transition-all flex items-center gap-1.5';
                 label.textContent = 'Alerts Blocked';
-                btn.title = 'Unblock notifications in your browser site settings';
             } else {
                 label.textContent = 'Enable Alerts';
             }
@@ -514,10 +568,7 @@
             }
 
             if (Notification.permission === 'granted') {
-                sendNativeNotification(
-                    'Planning • Alerts Active',
-                    'You will receive your 8:00 AM briefing, 9:00 PM report, and timed task alerts!'
-                );
+                sendNativeNotification('Planning • Alerts Active', 'You will receive your 8:00 AM briefing, 9:00 PM report, and timed task alerts!');
                 showToast('Sent test push notification');
                 return;
             }
@@ -531,10 +582,7 @@
                 const permission = await Notification.requestPermission();
                 updateNotificationButtonUI();
                 if (permission === 'granted') {
-                    sendNativeNotification(
-                        'Planning • Notifications Enabled',
-                        'Daily 8:00 AM morning briefing and 9:00 PM uncompleted report are ready.'
-                    );
+                    sendNativeNotification('Planning • Notifications Enabled', 'Daily 8:00 AM morning briefing and 9:00 PM uncompleted report are ready.');
                     showToast('Push notifications enabled!');
                 }
             } catch (err) {
@@ -545,15 +593,8 @@
         function sendNativeNotification(title, body) {
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
             try {
-                const notif = new Notification(title, {
-                    body: body,
-                    tag: 'planning-app-alert',
-                    renotify: true
-                });
-                notif.onclick = () => {
-                    window.focus();
-                    notif.close();
-                };
+                const notif = new Notification(title, { body: body, tag: 'planning-app-alert', renotify: true });
+                notif.onclick = () => { window.focus(); notif.close(); };
             } catch (e) {
                 showToast(`${title}: ${body}`);
             }
@@ -569,9 +610,10 @@
             if (triggerKey === lastTriggeredMinuteKey) return;
             lastTriggeredMinuteKey = triggerKey;
 
-            const activeTasks = tasks.filter(t => !t.completed);
+            checkDailyReset();
 
-            // 1. Daily 08:00 AM Morning Briefing
+            const activeTasks = tasks.filter(t => !t.completed && isTaskForToday(t));
+
             if (currentHHMM === '08:00') {
                 const previewList = activeTasks.slice(0, 3).map(t => `• ${t.title}`).join('\n');
                 const extra = activeTasks.length > 3 ? `\n+${activeTasks.length - 3} more tasks` : '';
@@ -581,44 +623,75 @@
                 );
             }
 
-            // 2. Daily 09:00 PM Uncompleted Stuff Report
             if (currentHHMM === '21:00') {
                 if (activeTasks.length > 0) {
                     const pendingList = activeTasks.slice(0, 3).map(t => `• ${t.title}`).join('\n');
-                    sendNativeNotification(
-                        `9:00 PM Report: ${activeTasks.length} Uncompleted`,
-                        `Still pending:\n${pendingList}`
-                    );
+                    sendNativeNotification(`9:00 PM Report: ${activeTasks.length} Uncompleted`, `Still pending:\n${pendingList}`);
                 } else {
-                    sendNativeNotification(
-                        '9:00 PM Report: 100% Complete!',
-                        'Awesome job—you finished every single task today.'
-                    );
+                    sendNativeNotification('9:00 PM Report: 100% Complete!', 'Awesome job—you finished every single task today.');
                 }
             }
 
-            // 3. Specific Timed Task Alerts
             activeTasks.forEach(task => {
                 if (task.time === currentHHMM) {
-                    sendNativeNotification(
-                        `Scheduled Now (${formatTime12h(task.time)})`,
-                        task.title
-                    );
+                    sendNativeNotification(`Scheduled Now (${formatTime12h(task.time)})`, task.title);
                 }
             });
         }
 
-        // ==========================================
-        // INITIALIZATION & PERSISTENCE
-        // ==========================================
+        function isTaskForToday(task) {
+            const todayISO = getTodayISO();
+            const dayOfWeek = new Date().getDay();
+
+            if (task.recurrence === 'daily') return true;
+            if (task.recurrence === 'weekdays' && dayOfWeek >= 1 && dayOfWeek <= 5) return true;
+            if (task.recurrence === 'weekends' && (dayOfWeek === 0 || dayOfWeek === 6)) return true;
+
+            if (!task.date) return true;
+            return task.date <= todayISO;
+        }
+
+        function checkDailyReset() {
+            const todayISO = getTodayISO();
+            const lastReset = localStorage.getItem(LAST_RESET_DATE_KEY);
+
+            if (lastReset !== todayISO) {
+                let changed = false;
+                tasks.forEach(t => {
+                    if (t.recurrence && t.recurrence !== 'none') {
+                        if (t.completed) {
+                            t.completed = false;
+                            changed = true;
+                        }
+                        t.date = todayISO;
+                    }
+                });
+                localStorage.setItem(LAST_RESET_DATE_KEY, todayISO);
+                if (changed) {
+                    saveTasks();
+                    renderAll();
+                }
+            }
+        }
+
         function initApp() {
             setupPWA();
             updateNotificationButtonUI();
+
+            const dateInput = document.getElementById('task-date-input');
+            if (dateInput) {
+                dateInput.value = getTomorrowISO();
+                dateInput.min = getTodayISO();
+            }
 
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 try {
                     tasks = JSON.parse(saved);
+                    tasks.forEach(t => {
+                        if (!t.date) t.date = getTodayISO();
+                        if (!t.recurrence) t.recurrence = 'none';
+                    });
                 } catch (e) {
                     tasks = structuredClone(INITIAL_TASKS);
                 }
@@ -627,6 +700,7 @@
                 saveTasks();
             }
 
+            checkDailyReset();
             updateClock();
             setInterval(updateClock, 1000);
             renderAll();
@@ -643,18 +717,32 @@
             showToast('Restored your default Planning task list');
         }
 
-        // ==========================================
-        // CLOCK & DATE DISPLAY
-        // ==========================================
         function updateClock() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
             document.getElementById('live-time-display').textContent = timeStr;
+            const dateEl = document.getElementById('current-date-display');
+            if (dateEl) dateEl.textContent = dateStr;
             checkScheduledNotifications(now);
+        }
+
+        function formatDateReadable(isoDate) {
+            if (!isoDate) return 'Today';
+            const today = getTodayISO();
+            const tomorrow = getTomorrowISO();
+            if (isoDate === today) return 'Today';
+            if (isoDate === tomorrow) return 'Tomorrow';
+            const [y, m, d] = isoDate.split('-').map(Number);
+            const dt = new Date(y, m - 1, d);
+            return dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+
+        function getRecurrenceLabel(rec) {
+            if (rec === 'daily') return 'Every Day';
+            if (rec === 'weekdays') return 'Weekdays';
+            if (rec === 'weekends') return 'Weekends';
+            return null;
         }
 
         function formatTime12h(time24) {
@@ -666,9 +754,25 @@
             return `${h}:${mStr} ${ampm}`;
         }
 
-        // ==========================================
-        // ADDING & SCHEDULING TASKS
-        // ==========================================
+        function setDateMode(mode) {
+            dateMode = mode;
+            const todayBtn = document.getElementById('date-today-btn');
+            const futureBtn = document.getElementById('date-future-btn');
+            const dateWrapper = document.getElementById('date-picker-wrapper');
+
+            if (mode === 'today') {
+                todayBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-forest-800 text-limeglow-400 border border-forest-600/50 transition-all';
+                futureBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-emerald-300/70 hover:text-white transition-all flex items-center gap-1.5';
+                dateWrapper.classList.add('hidden');
+                dateWrapper.classList.remove('flex');
+            } else {
+                futureBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-forest-800 text-limeglow-400 border border-forest-600/50 transition-all flex items-center gap-1.5';
+                todayBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-emerald-300/70 hover:text-white transition-all';
+                dateWrapper.classList.remove('hidden');
+                dateWrapper.classList.add('flex');
+            }
+        }
+
         function setScheduleMode(mode) {
             scheduleMode = mode;
             const todayBtn = document.getElementById('mode-today-btn');
@@ -692,18 +796,25 @@
             e.preventDefault();
             const titleInput = document.getElementById('task-title-input');
             const timeInput = document.getElementById('task-time-input');
+            const dateInput = document.getElementById('task-date-input');
+            const recurrenceInput = document.getElementById('task-recurrence-input');
             const categoryInput = document.getElementById('task-category-input');
 
             const rawTitle = titleInput.value.trim();
             if (!rawTitle) return;
 
+            const chosenDate = dateMode === 'future' && dateInput.value ? dateInput.value : getTodayISO();
+            const chosenRecurrence = recurrenceInput ? recurrenceInput.value : 'none';
+
             const newTask = {
                 id: 't-' + Date.now(),
                 title: rawTitle,
                 time: scheduleMode === 'timed' ? timeInput.value : null,
+                date: chosenDate,
+                recurrence: chosenRecurrence,
                 category: categoryInput.value,
                 completed: false,
-                dayLabel: 'Today'
+                dayLabel: formatDateReadable(chosenDate)
             };
 
             tasks.unshift(newTask);
@@ -711,13 +822,12 @@
             titleInput.value = '';
             renderAll();
 
-            const whenMsg = newTask.time ? `scheduled for ${formatTime12h(newTask.time)}` : 'added for Today';
-            showToast(`Task ${whenMsg}`);
+            const recText = chosenRecurrence !== 'none' ? ` (${getRecurrenceLabel(chosenRecurrence)})` : '';
+            const dateText = formatDateReadable(chosenDate);
+            const timeText = newTask.time ? ` at ${formatTime12h(newTask.time)}` : '';
+            showToast(`Scheduled for ${dateText}${timeText}${recText}`);
         }
 
-        // ==========================================
-        // TASK ACTIONS (TOGGLE, DELETE, RESCHEDULE)
-        // ==========================================
         function toggleTask(id) {
             const task = tasks.find(t => t.id === id);
             if (!task) return;
@@ -740,7 +850,6 @@
             showToast('Cleared completed tasks');
         }
 
-        // Edit Time Modal
         function openEditTimeModal(id) {
             const task = tasks.find(t => t.id === id);
             if (!task) return;
@@ -750,6 +859,11 @@
             const radioAnytime = document.getElementById('edit-radio-anytime');
             const radioTimed = document.getElementById('edit-radio-timed');
             const timeVal = document.getElementById('edit-modal-time-val');
+            const dateVal = document.getElementById('edit-modal-date-val');
+            const recVal = document.getElementById('edit-modal-recurrence-val');
+
+            dateVal.value = task.date || getTodayISO();
+            recVal.value = task.recurrence || 'none';
 
             if (task.time) {
                 radioTimed.checked = true;
@@ -783,17 +897,21 @@
             const task = tasks.find(t => t.id === editingTaskId);
             if (task) {
                 const isTimed = document.getElementById('edit-radio-timed').checked;
+                const newDate = document.getElementById('edit-modal-date-val').value || getTodayISO();
+                const newRec = document.getElementById('edit-modal-recurrence-val').value;
+
                 task.time = isTimed ? document.getElementById('edit-modal-time-val').value : null;
+                task.date = newDate;
+                task.recurrence = newRec;
+                task.dayLabel = formatDateReadable(newDate);
+
                 saveTasks();
                 renderAll();
-                showToast(task.time ? `Scheduled for ${formatTime12h(task.time)}` : 'Moved to Anytime Today');
+                showToast('Task schedule updated');
             }
             closeEditTimeModal();
         }
 
-        // ==========================================
-        // FILTERING & RENDERING
-        // ==========================================
         function setFilter(filter) {
             currentFilter = filter;
             document.querySelectorAll('.filter-tab').forEach(btn => {
@@ -821,13 +939,24 @@
 
         function renderTaskCard(task) {
             const badgeStyle = getCategoryBadgeClasses(task.category);
+            const dateText = formatDateReadable(task.date);
+            const recLabel = getRecurrenceLabel(task.recurrence);
+
             const timeBadge = task.time
                 ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-mono font-semibold bg-limeglow-400 text-forest-950">
                         <i data-lucide="clock" class="w-3 h-3 stroke-[2.5]"></i> ${formatTime12h(task.time)}
                    </span>`
-                : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-mono bg-forest-800 text-emerald-300/80 border border-forest-700">
-                        ${task.dayLabel || 'Today'}
-                   </span>`;
+                : '';
+
+            const dateBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-mono bg-forest-800 text-emerald-300/90 border border-forest-700">
+                    <i data-lucide="calendar" class="w-3 h-3 text-limeglow-400"></i> ${dateText}
+               </span>`;
+
+            const recBadge = recLabel
+                ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-mono font-semibold bg-limeglow-400/20 text-limeglow-300 border border-limeglow-400/40">
+                        <i data-lucide="repeat" class="w-3 h-3"></i> ${recLabel}
+                   </span>`
+                : '';
 
             return `
                 <div class="group glass-panel hover:border-limeglow-400/40 rounded-2xl p-4 transition-all duration-200 flex items-start sm:items-center justify-between gap-3 ${task.completed ? 'opacity-60 bg-forest-950/50' : ''}">
@@ -848,6 +977,8 @@
                             ` : ''}
                             <div class="flex flex-wrap items-center gap-2 mt-2">
                                 ${timeBadge}
+                                ${dateBadge}
+                                ${recBadge}
                                 <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-mono border ${badgeStyle}">
                                     ${escapeHtml(task.category)}
                                 </span>
@@ -855,10 +986,9 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
                     <div class="flex items-center gap-1.5 shrink-0">
-                        <button onclick="openEditTimeModal('${task.id}')" class="p-2 rounded-xl bg-forest-900/90 hover:bg-forest-700 text-emerald-300/80 hover:text-limeglow-300 border border-forest-700/70 transition-colors" title="Set or edit time">
-                            <i data-lucide="clock" class="w-4 h-4"></i>
+                        <button onclick="openEditTimeModal('${task.id}')" class="p-2 rounded-xl bg-forest-900/90 hover:bg-forest-700 text-emerald-300/80 hover:text-limeglow-300 border border-forest-700/70 transition-colors" title="Set date, time or repeat">
+                            <i data-lucide="calendar-clock" class="w-4 h-4"></i>
                         </button>
                         <button onclick="deleteTask('${task.id}')" class="p-2 rounded-xl bg-forest-900/90 hover:bg-red-950/70 text-emerald-300/60 hover:text-red-400 border border-forest-700/70 transition-colors" title="Delete task">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -869,27 +999,32 @@
         }
 
         function renderAll() {
-            const total = tasks.length;
-            const completedTasks = tasks.filter(t => t.completed);
-            const activeTasks = tasks.filter(t => !t.completed);
-            const timedTasks = activeTasks.filter(t => t.time !== null).sort((a, b) => a.time.localeCompare(b.time));
-            const anytimeTasks = activeTasks.filter(t => t.time === null);
+            const todayISO = getTodayISO();
+            const todayTasks = tasks.filter(t => isTaskForToday(t));
+            const totalToday = todayTasks.length;
+            const completedToday = todayTasks.filter(t => t.completed);
+            const activeToday = todayTasks.filter(t => !t.completed);
 
-            // Update Progress Bar & Stats
-            const pct = total === 0 ? 0 : Math.round((completedTasks.length / total) * 100);
-            document.getElementById('progress-stats-text').textContent = `${completedTasks.length} / ${total} Done (${pct}%)`;
+            const timedTasks = activeToday.filter(t => t.time !== null).sort((a, b) => a.time.localeCompare(b.time));
+            const anytimeTasks = activeToday.filter(t => t.time === null);
+            const dailyRecurringTasks = tasks.filter(t => t.recurrence && t.recurrence !== 'none');
+            const upcomingTasks = tasks.filter(t => !t.completed && (!t.recurrence || t.recurrence === 'none') && t.date > todayISO)
+                .sort((a, b) => a.date.localeCompare(b.date));
+            const allCompletedTasks = tasks.filter(t => t.completed);
+
+            const pct = totalToday === 0 ? 0 : Math.round((completedToday.length / totalToday) * 100);
+            document.getElementById('progress-stats-text').textContent = `${completedToday.length} / ${totalToday} Done (${pct}%)`;
             document.getElementById('progress-bar-fill').style.width = `${pct}%`;
-            document.getElementById('remaining-count-label').textContent = `${activeTasks.length} task${activeTasks.length === 1 ? '' : 's'} remaining`;
+            document.getElementById('remaining-count-label').textContent = `${activeToday.length} task${activeToday.length === 1 ? '' : 's'} remaining today`;
 
-            // Update Filter Tab Counters
-            document.getElementById('count-all').textContent = total;
+            document.getElementById('count-all').textContent = totalToday;
             document.getElementById('count-timed').textContent = timedTasks.length;
-            document.getElementById('count-anytime').textContent = anytimeTasks.length;
-            document.getElementById('count-completed').textContent = completedTasks.length;
+            document.getElementById('count-daily').textContent = dailyRecurringTasks.length;
+            document.getElementById('count-upcoming').textContent = upcomingTasks.length;
+            document.getElementById('count-completed').textContent = allCompletedTasks.length;
 
-            // Show/Hide Clear Completed Button
             const clearBtn = document.getElementById('clear-completed-btn');
-            if (completedTasks.length > 0) {
+            if (allCompletedTasks.length > 0) {
                 clearBtn.classList.remove('hidden');
             } else {
                 clearBtn.classList.add('hidden');
@@ -899,7 +1034,6 @@
             let html = '';
 
             if (currentFilter === 'all') {
-                // Section 1: Timed Schedule
                 if (timedTasks.length > 0) {
                     html += `
                         <div class="space-y-3">
@@ -915,32 +1049,45 @@
                     `;
                 }
 
-                // Section 2: Scheduled for Today (Anytime)
                 html += `
                     <div class="space-y-3">
                         <div class="flex items-center justify-between px-1">
                             <h2 class="text-xs font-mono uppercase tracking-wider text-emerald-300/80 font-bold flex items-center gap-2">
-                                <i data-lucide="sun" class="w-4 h-4 text-limeglow-400"></i> Scheduled for Today (${anytimeTasks.length})
+                                <i data-lucide="sun" class="w-4 h-4 text-limeglow-400"></i> Today's Queue & Daily Habits (${anytimeTasks.length})
                             </h2>
                         </div>
                         ${anytimeTasks.length > 0
                             ? `<div class="space-y-2.5">${anytimeTasks.map(renderTaskCard).join('')}</div>`
-                            : `<div class="glass-panel rounded-2xl p-6 text-center text-sm font-mono text-emerald-300/60">All unscheduled tasks for today are cleared!</div>`
+                            : `<div class="glass-panel rounded-2xl p-6 text-center text-sm font-mono text-emerald-300/60">All tasks for today are cleared!</div>`
                         }
                     </div>
                 `;
 
-                // Section 3: Completed
-                if (completedTasks.length > 0) {
+                if (upcomingTasks.length > 0) {
+                    html += `
+                        <div class="space-y-3 pt-2">
+                            <div class="flex items-center justify-between px-1">
+                                <h2 class="text-xs font-mono uppercase tracking-wider text-limeglow-300/80 font-bold flex items-center gap-2">
+                                    <i data-lucide="calendar-clock" class="w-4 h-4"></i> Upcoming Future Tasks (${upcomingTasks.length})
+                                </h2>
+                            </div>
+                            <div class="space-y-2.5">
+                                ${upcomingTasks.map(renderTaskCard).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (completedToday.length > 0) {
                     html += `
                         <div class="space-y-3 pt-2">
                             <div class="flex items-center justify-between px-1">
                                 <h2 class="text-xs font-mono uppercase tracking-wider text-emerald-400/50 font-bold flex items-center gap-2">
-                                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Completed (${completedTasks.length})
+                                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Completed Today (${completedToday.length})
                                 </h2>
                             </div>
                             <div class="space-y-2">
-                                ${completedTasks.map(renderTaskCard).join('')}
+                                ${completedToday.map(renderTaskCard).join('')}
                             </div>
                         </div>
                     `;
@@ -949,16 +1096,20 @@
                 html = timedTasks.length > 0
                     ? `<div class="space-y-2.5">${timedTasks.map(renderTaskCard).join('')}</div>`
                     : `<div class="glass-panel rounded-2xl p-8 text-center space-y-2">
-                            <p class="text-sm font-mono text-emerald-200/70">No tasks locked to a specific clock time yet.</p>
-                            <p class="text-xs text-emerald-400/50">Click the clock icon on any task to assign a specific time slot.</p>
+                            <p class="text-sm font-mono text-emerald-200/70">No tasks locked to a specific clock time today.</p>
+                            <p class="text-xs text-emerald-400/50">Click the calendar/clock icon on any task to assign a time slot.</p>
                        </div>`;
-            } else if (currentFilter === 'anytime') {
-                html = anytimeTasks.length > 0
-                    ? `<div class="space-y-2.5">${anytimeTasks.map(renderTaskCard).join('')}</div>`
-                    : `<div class="glass-panel rounded-2xl p-8 text-center text-sm font-mono text-emerald-200/70">No unscheduled tasks remaining!</div>`;
+            } else if (currentFilter === 'daily') {
+                html = dailyRecurringTasks.length > 0
+                    ? `<div class="space-y-2.5">${dailyRecurringTasks.map(renderTaskCard).join('')}</div>`
+                    : `<div class="glass-panel rounded-2xl p-8 text-center text-sm font-mono text-emerald-200/70">No recurring daily tasks yet—select "Every Day (Daily)" when adding a task!</div>`;
+            } else if (currentFilter === 'upcoming') {
+                html = upcomingTasks.length > 0
+                    ? `<div class="space-y-2.5">${upcomingTasks.map(renderTaskCard).join('')}</div>`
+                    : `<div class="glass-panel rounded-2xl p-8 text-center text-sm font-mono text-emerald-200/70">No future-dated tasks scheduled yet—click "Future Date" above to plan ahead!</div>`;
             } else if (currentFilter === 'completed') {
-                html = completedTasks.length > 0
-                    ? `<div class="space-y-2.5">${completedTasks.map(renderTaskCard).join('')}</div>`
+                html = allCompletedTasks.length > 0
+                    ? `<div class="space-y-2.5">${allCompletedTasks.map(renderTaskCard).join('')}</div>`
                     : `<div class="glass-panel rounded-2xl p-8 text-center text-sm font-mono text-emerald-200/70">No tasks completed yet—check one off to build momentum!</div>`;
             }
 
@@ -966,9 +1117,6 @@
             lucide.createIcons();
         }
 
-        // ==========================================
-        // AUTOMATED BRIEFING & REPORT MODALS
-        // ==========================================
         function openReportModal(type) {
             const modal = document.getElementById('report-modal');
             const iconBox = document.getElementById('modal-icon-box');
@@ -977,8 +1125,8 @@
             const body = document.getElementById('modal-body');
             const footer = document.getElementById('modal-footer');
 
-            const activeTasks = tasks.filter(t => !t.completed);
-            const completedTasks = tasks.filter(t => t.completed);
+            const activeTasks = tasks.filter(t => !t.completed && isTaskForToday(t));
+            const completedTasks = tasks.filter(t => t.completed && isTaskForToday(t));
 
             if (type === 'morning') {
                 iconBox.innerHTML = `<i data-lucide="sunrise" class="w-6 h-6"></i>`;
@@ -990,7 +1138,7 @@
 
                 body.innerHTML = `
                     <div class="p-3.5 rounded-2xl bg-forest-950/90 border border-forest-700/70 text-xs font-mono text-emerald-200 leading-relaxed">
-                        Good morning, Pramodh! You have <strong class="text-limeglow-400">${activeTasks.length} active tasks</strong> lined up for Monday, Nov 16.
+                        Good morning, Pramodh! You have <strong class="text-limeglow-400">${activeTasks.length} active tasks</strong> lined up for today.
                     </div>
                     ${timed.length > 0 ? `
                         <div class="space-y-1.5">
@@ -1024,7 +1172,6 @@
                     </button>
                 `;
             } else {
-                // 9:00 PM Uncompleted Report
                 iconBox.innerHTML = `<i data-lucide="moon" class="w-6 h-6"></i>`;
                 badge.textContent = 'End-of-Day Recap • 9:00 PM Daily';
                 title.textContent = 'Uncompleted Stuff Report';
@@ -1094,8 +1241,12 @@
 
         function carryOverUncompleted() {
             let count = 0;
+            const tomorrow = getTomorrowISO();
             tasks.forEach(t => {
-                if (!t.completed) {
+                if (!t.completed && isTaskForToday(t)) {
+                    if (!t.recurrence || t.recurrence === 'none') {
+                        t.date = tomorrow;
+                    }
                     t.dayLabel = 'Tomorrow (Carried Over)';
                     count++;
                 }
@@ -1106,9 +1257,6 @@
             showToast(`Carried over ${count} uncompleted tasks to Tomorrow`);
         }
 
-        // ==========================================
-        // UTILITIES & TOAST NOTIFICATIONS
-        // ==========================================
         function escapeHtml(str) {
             const div = document.createElement('div');
             div.textContent = str;
@@ -1130,7 +1278,6 @@
             }, 2600);
         }
 
-        // Boot app
         window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
